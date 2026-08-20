@@ -445,6 +445,149 @@ player.castShadow = true;
 scene.add(player);
 
 // ============================================================
+// VEHÍCULO
+// ============================================================
+
+const vehicle = new THREE.Group();
+
+scene.add(vehicle);
+
+// ------------------------------------------------------------
+// CARROCERÍA
+// ------------------------------------------------------------
+
+const carBodyGeometry =
+    new THREE.BoxGeometry(
+        2.4,
+        0.7,
+        4.2
+    );
+
+const carBodyMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xc62828
+    });
+
+const carBody =
+    new THREE.Mesh(
+        carBodyGeometry,
+        carBodyMaterial
+    );
+
+carBody.position.y = 0.8;
+
+carBody.castShadow = true;
+
+vehicle.add(carBody);
+
+// ------------------------------------------------------------
+// PARTE SUPERIOR
+// ------------------------------------------------------------
+
+const cabinGeometry =
+    new THREE.BoxGeometry(
+        1.8,
+        0.7,
+        2
+    );
+
+const cabinMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x222222
+    });
+
+const cabin =
+    new THREE.Mesh(
+        cabinGeometry,
+        cabinMaterial
+    );
+
+cabin.position.set(
+    0,
+    1.35,
+    -0.1
+);
+
+cabin.castShadow = true;
+
+vehicle.add(cabin);
+
+// ------------------------------------------------------------
+// RUEDAS
+// ------------------------------------------------------------
+
+const wheelGeometry =
+    new THREE.CylinderGeometry(
+        0.45,
+        0.45,
+        0.35,
+        16
+    );
+
+const wheelMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x111111
+    });
+
+const wheelPositions = [
+    [-1.1, 0.45, 1.35],
+    [1.1, 0.45, 1.35],
+    [-1.1, 0.45, -1.35],
+    [1.1, 0.45, -1.35]
+];
+
+for (const position of wheelPositions) {
+
+    const wheel =
+        new THREE.Mesh(
+            wheelGeometry,
+            wheelMaterial
+        );
+
+    wheel.rotation.z =
+        Math.PI / 2;
+
+    wheel.position.set(
+        position[0],
+        position[1],
+        position[2]
+    );
+
+    wheel.castShadow = true;
+
+    vehicle.add(wheel);
+}
+
+// ------------------------------------------------------------
+// POSICIÓN DEL VEHÍCULO
+// ------------------------------------------------------------
+
+vehicle.position.set(
+    8,
+    0,
+    8
+);
+
+vehicle.rotation.y =
+    Math.PI;
+
+// ============================================================
+// ESTADO DEL VEHÍCULO
+// ============================================================
+
+let drivingVehicle = false;
+
+let vehicleSpeed = 0;
+
+const vehicleMaxSpeed = 25;
+
+const vehicleAcceleration = 18;
+
+const vehicleBrake = 30;
+
+const vehicleTurnSpeed = 2.2;
+
+// ============================================================
 // CONTROLES
 // ============================================================
 
@@ -454,6 +597,42 @@ window.addEventListener(
     "keydown",
     (event) => {
         keys[event.code] = true;
+
+        if (event.code === "KeyF") {
+
+    const distance =
+        player.position.distanceTo(
+            vehicle.position
+        );
+
+    if (distance < 4) {
+
+        drivingVehicle =
+            !drivingVehicle;
+
+        if (drivingVehicle) {
+
+            player.visible = false;
+
+            player.position.copy(
+                vehicle.position
+            );
+
+            player.position.y += 1;
+
+        } else {
+
+            player.visible = true;
+
+            player.position.copy(
+                vehicle.position
+            );
+
+            player.position.x += 3;
+
+        }
+    }
+}
 
         if (
             event.code === "Space" &&
@@ -577,6 +756,140 @@ function updatePlayer(delta) {
         right /= movementLength;
 
     }
+
+    // ============================================================
+// CONDUCCIÓN
+// ============================================================
+
+function updateVehicle(delta) {
+
+    if (!drivingVehicle) {
+
+        // El coche reduce velocidad lentamente
+
+        vehicleSpeed *= 0.95;
+
+        return;
+    }
+
+    // --------------------------------------------------------
+    // ACELERACIÓN
+    // --------------------------------------------------------
+
+    if (keys["KeyW"]) {
+
+        vehicleSpeed +=
+            vehicleAcceleration *
+            delta;
+
+    }
+
+    // --------------------------------------------------------
+    // FRENADO / MARCHA ATRÁS
+    // --------------------------------------------------------
+
+    if (keys["KeyS"]) {
+
+        vehicleSpeed -=
+            vehicleBrake *
+            delta;
+
+    }
+
+    // --------------------------------------------------------
+    // LÍMITE DE VELOCIDAD
+    // --------------------------------------------------------
+
+    vehicleSpeed =
+        THREE.MathUtils.clamp(
+            vehicleSpeed,
+            -10,
+            vehicleMaxSpeed
+        );
+
+    // --------------------------------------------------------
+    // FRENADO AUTOMÁTICO
+    // --------------------------------------------------------
+
+    if (
+        !keys["KeyW"] &&
+        !keys["KeyS"]
+    ) {
+
+        vehicleSpeed *=
+            Math.pow(0.15, delta);
+
+    }
+
+    // --------------------------------------------------------
+    // DIRECCIÓN
+    // --------------------------------------------------------
+
+    if (
+        Math.abs(vehicleSpeed) > 0.1
+    ) {
+
+        let steering = 0;
+
+        if (keys["KeyA"]) {
+            steering += 1;
+        }
+
+        if (keys["KeyD"]) {
+            steering -= 1;
+        }
+
+        const speedFactor =
+            Math.min(
+                Math.abs(vehicleSpeed) / 10,
+                1
+            );
+
+        vehicle.rotation.y +=
+            steering *
+            vehicleTurnSpeed *
+            speedFactor *
+            delta *
+            Math.sign(vehicleSpeed);
+
+    }
+
+    // --------------------------------------------------------
+    // MOVIMIENTO
+    // --------------------------------------------------------
+
+    const forward =
+        new THREE.Vector3(
+            0,
+            0,
+            -1
+        );
+
+    forward.applyQuaternion(
+        vehicle.quaternion
+    );
+
+    vehicle.position.addScaledVector(
+        forward,
+        vehicleSpeed * delta
+    );
+
+    // --------------------------------------------------------
+    // MANTENER EL COCHE EN EL SUELO
+    // --------------------------------------------------------
+
+    vehicle.position.y = 0;
+
+    // --------------------------------------------------------
+    // COLOCAR AL JUGADOR DENTRO DEL COCHE
+    // --------------------------------------------------------
+
+    player.position.copy(
+        vehicle.position
+    );
+
+    player.position.y += 1;
+}
 
     // --------------------------------------------------------
     // DIRECCIÓN BASADA EN LA CÁMARA
@@ -767,9 +1080,17 @@ function animate() {
             0.05
         );
 
+if (drivingVehicle) {
+
+    updateVehicle(delta);
+
+} else {
+
     updatePlayer(delta);
 
-    updateCamera();
+}
+
+updateCamera();
 
     renderer.render(
         scene,
