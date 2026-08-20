@@ -116,6 +116,303 @@ ground.receiveShadow = true;
 scene.add(ground);
 
 // ============================================================
+// CIUDAD
+// ============================================================
+
+const city = new THREE.Group();
+
+scene.add(city);
+
+// ------------------------------------------------------------
+// MATERIALES
+// ------------------------------------------------------------
+
+const roadMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x252525
+    });
+
+const sidewalkMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x777777
+    });
+
+const buildingMaterials = [
+    new THREE.MeshStandardMaterial({
+        color: 0x9b9b9b
+    }),
+
+    new THREE.MeshStandardMaterial({
+        color: 0xb56b45
+    }),
+
+    new THREE.MeshStandardMaterial({
+        color: 0x6f7fa3
+    }),
+
+    new THREE.MeshStandardMaterial({
+        color: 0xc4a35a
+    })
+];
+
+// ------------------------------------------------------------
+// CREAR CUBO
+// ------------------------------------------------------------
+
+function createBox(
+    width,
+    height,
+    depth,
+    material,
+    x,
+    y,
+    z
+) {
+
+    const geometry =
+        new THREE.BoxGeometry(
+            width,
+            height,
+            depth
+        );
+
+    const mesh =
+        new THREE.Mesh(
+            geometry,
+            material
+        );
+
+    mesh.position.set(
+        x,
+        y,
+        z
+    );
+
+    mesh.castShadow = true;
+
+    mesh.receiveShadow = true;
+
+    city.add(mesh);
+
+    return mesh;
+}
+
+// ------------------------------------------------------------
+// CARRETERA PRINCIPAL
+// ------------------------------------------------------------
+
+createBox(
+    500,
+    0.1,
+    14,
+    roadMaterial,
+    0,
+    0.05,
+    0
+);
+
+// ------------------------------------------------------------
+// CARRETERA CRUZADA
+// ------------------------------------------------------------
+
+createBox(
+    14,
+    0.1,
+    500,
+    roadMaterial,
+    0,
+    0.06,
+    0
+);
+
+// ------------------------------------------------------------
+// ACERAS
+// ------------------------------------------------------------
+
+createBox(
+    500,
+    0.15,
+    3,
+    sidewalkMaterial,
+    0,
+    0.12,
+    9
+);
+
+createBox(
+    500,
+    0.15,
+    3,
+    sidewalkMaterial,
+    0,
+    0.12,
+    -9
+);
+
+createBox(
+    3,
+    0.15,
+    500,
+    sidewalkMaterial,
+    9,
+    0.13,
+    0
+);
+
+createBox(
+    3,
+    0.15,
+    500,
+    sidewalkMaterial,
+    -9,
+    0.13,
+    0
+);
+
+// ------------------------------------------------------------
+// EDIFICIOS
+// ------------------------------------------------------------
+
+function createBuilding(
+    x,
+    z,
+    width,
+    depth,
+    height
+) {
+
+    const material =
+        buildingMaterials[
+            Math.floor(
+                Math.random() *
+                buildingMaterials.length
+            )
+        ];
+
+    createBox(
+        width,
+        height,
+        depth,
+        material,
+        x,
+        height / 2,
+        z
+    );
+}
+
+// ------------------------------------------------------------
+// BLOQUE 1
+// ------------------------------------------------------------
+
+createBuilding(
+    30,
+    30,
+    15,
+    15,
+    25
+);
+
+createBuilding(
+    55,
+    30,
+    18,
+    15,
+    35
+);
+
+createBuilding(
+    85,
+    30,
+    20,
+    18,
+    45
+);
+
+// ------------------------------------------------------------
+// BLOQUE 2
+// ------------------------------------------------------------
+
+createBuilding(
+    30,
+    -30,
+    15,
+    15,
+    20
+);
+
+createBuilding(
+    55,
+    -30,
+    20,
+    15,
+    30
+);
+
+createBuilding(
+    85,
+    -30,
+    18,
+    18,
+    40
+);
+
+// ------------------------------------------------------------
+// BLOQUE 3
+// ------------------------------------------------------------
+
+createBuilding(
+    -30,
+    30,
+    18,
+    18,
+    30
+);
+
+createBuilding(
+    -60,
+    30,
+    15,
+    15,
+    22
+);
+
+createBuilding(
+    -85,
+    30,
+    20,
+    20,
+    38
+);
+
+// ------------------------------------------------------------
+// BLOQUE 4
+// ------------------------------------------------------------
+
+createBuilding(
+    -30,
+    -30,
+    18,
+    18,
+    25
+);
+
+createBuilding(
+    -60,
+    -30,
+    20,
+    16,
+    35
+);
+
+createBuilding(
+    -85,
+    -30,
+    15,
+    18,
+    28
+);
+
+// ============================================================
 // JUGADOR
 // ============================================================
 
