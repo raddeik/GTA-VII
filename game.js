@@ -729,11 +729,11 @@ function updatePlayer(delta) {
     let right = 0;
 
     if (keys["KeyW"]) {
-        forward += 1;
+        forward -= 1;
     }
 
     if (keys["KeyS"]) {
-        forward -= 1;
+        forward += 1;
     }
 
     if (keys["KeyD"]) {
