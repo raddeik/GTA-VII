@@ -582,19 +582,17 @@ function updatePlayer(delta) {
     // DIRECCIÓN BASADA EN LA CÁMARA
     // --------------------------------------------------------
 
-    const forwardDirection =
-        new THREE.Vector3(
-            Math.sin(cameraYaw),
-            0,
-            Math.cos(cameraYaw)
-        );
+const forwardDirection = new THREE.Vector3(
+    -Math.sin(cameraYaw),
+    0,
+    -Math.cos(cameraYaw)
+);
 
-    const rightDirection =
-        new THREE.Vector3(
-            Math.cos(cameraYaw),
-            0,
-            -Math.sin(cameraYaw)
-        );
+const rightDirection = new THREE.Vector3(
+    Math.cos(cameraYaw),
+    0,
+    -Math.sin(cameraYaw)
+);
 
     const movement =
         new THREE.Vector3();
