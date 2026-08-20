@@ -558,11 +558,11 @@ function updatePlayer(delta) {
     }
 
     if (keys["KeyD"]) {
-        right += 1;
+        right -= 1;
     }
 
     if (keys["KeyA"]) {
-        right -= 1;
+        right += 1;
     }
 
     const movementLength =
