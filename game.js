@@ -1,11 +1,16 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
 
+// ============================================================
+// URBAN CHAOS - PROTOTIPO
+// Cámara de tercera persona + movimiento
+// ============================================================
+
 const game = document.getElementById("game");
 const loading = document.getElementById("loading");
 
-// --------------------------------------------------
+// ============================================================
 // ESCENA
-// --------------------------------------------------
+// ============================================================
 
 const scene = new THREE.Scene();
 
@@ -17,9 +22,9 @@ scene.fog = new THREE.Fog(
     500
 );
 
-// --------------------------------------------------
+// ============================================================
 // CÁMARA
-// --------------------------------------------------
+// ============================================================
 
 const camera = new THREE.PerspectiveCamera(
     70,
@@ -28,15 +33,18 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-camera.position.set(
-    0,
-    5,
-    10
-);
+const cameraDistance = 8;
+const cameraHeight = 4;
 
-// --------------------------------------------------
+let cameraYaw = 0;
+let cameraPitch = -0.25;
+
+const minPitch = -1.0;
+const maxPitch = 0.35;
+
+// ============================================================
 // RENDERIZADOR
-// --------------------------------------------------
+// ============================================================
 
 const renderer = new THREE.WebGLRenderer({
     antialias: true
@@ -55,9 +63,9 @@ renderer.shadowMap.enabled = true;
 
 game.appendChild(renderer.domElement);
 
-// --------------------------------------------------
+// ============================================================
 // LUCES
-// --------------------------------------------------
+// ============================================================
 
 const sun = new THREE.DirectionalLight(
     0xffffff,
@@ -82,37 +90,34 @@ const ambientLight = new THREE.HemisphereLight(
 
 scene.add(ambientLight);
 
-// --------------------------------------------------
-// SUELO
-// --------------------------------------------------
+// ============================================================
+// TERRENO
+// ============================================================
 
-const groundGeometry =
-    new THREE.PlaneGeometry(
-        500,
-        500
-    );
+const groundGeometry = new THREE.PlaneGeometry(
+    500,
+    500
+);
 
 const groundMaterial =
     new THREE.MeshStandardMaterial({
         color: 0x3d7a3d
     });
 
-const ground =
-    new THREE.Mesh(
-        groundGeometry,
-        groundMaterial
-    );
+const ground = new THREE.Mesh(
+    groundGeometry,
+    groundMaterial
+);
 
-ground.rotation.x =
-    -Math.PI / 2;
+ground.rotation.x = -Math.PI / 2;
 
 ground.receiveShadow = true;
 
 scene.add(ground);
 
-// --------------------------------------------------
+// ============================================================
 // JUGADOR
-// --------------------------------------------------
+// ============================================================
 
 const playerGeometry =
     new THREE.CapsuleGeometry(
@@ -127,11 +132,10 @@ const playerMaterial =
         color: 0x3366ff
     });
 
-const player =
-    new THREE.Mesh(
-        playerGeometry,
-        playerMaterial
-    );
+const player = new THREE.Mesh(
+    playerGeometry,
+    playerMaterial
+);
 
 player.position.set(
     0,
@@ -143,39 +147,22 @@ player.castShadow = true;
 
 scene.add(player);
 
-// --------------------------------------------------
-// VARIABLES DEL JUGADOR
-// --------------------------------------------------
+// ============================================================
+// CONTROLES
+// ============================================================
 
 const keys = {};
-
-const playerSpeed = 8;
-
-let velocityY = 0;
-
-const gravity = 25;
-
-const jumpForce = 10;
-
-let onGround = true;
-
-// --------------------------------------------------
-// CONTROLES
-// --------------------------------------------------
 
 window.addEventListener(
     "keydown",
     (event) => {
-
         keys[event.code] = true;
 
         if (
             event.code === "Space" &&
             onGround
         ) {
-
             velocityY = jumpForce;
-
             onGround = false;
         }
     }
@@ -184,14 +171,81 @@ window.addEventListener(
 window.addEventListener(
     "keyup",
     (event) => {
-
         keys[event.code] = false;
     }
 );
 
-// --------------------------------------------------
+// ============================================================
+// RATÓN
+// ============================================================
+
+let mouseLocked = false;
+
+renderer.domElement.addEventListener(
+    "click",
+    () => {
+
+        renderer.domElement.requestPointerLock();
+
+    }
+);
+
+document.addEventListener(
+    "pointerlockchange",
+    () => {
+
+        mouseLocked =
+            document.pointerLockElement ===
+            renderer.domElement;
+
+    }
+);
+
+document.addEventListener(
+    "mousemove",
+    (event) => {
+
+        if (!mouseLocked) {
+            return;
+        }
+
+        const sensitivity = 0.0025;
+
+        cameraYaw -=
+            event.movementX *
+            sensitivity;
+
+        cameraPitch -=
+            event.movementY *
+            sensitivity;
+
+        cameraPitch = THREE.MathUtils.clamp(
+            cameraPitch,
+            minPitch,
+            maxPitch
+        );
+    }
+);
+
+// ============================================================
+// FÍSICA DEL JUGADOR
+// ============================================================
+
+const playerSpeed = 8;
+
+const sprintSpeed = 13;
+
+const gravity = 25;
+
+const jumpForce = 10;
+
+let velocityY = 0;
+
+let onGround = true;
+
+// ============================================================
 // MOVIMIENTO
-// --------------------------------------------------
+// ============================================================
 
 function updatePlayer(delta) {
 
@@ -214,29 +268,94 @@ function updatePlayer(delta) {
         right -= 1;
     }
 
-    const length =
+    const movementLength =
         Math.sqrt(
             forward * forward +
             right * right
         );
 
-    if (length > 0) {
+    if (movementLength > 0) {
 
-        forward /= length;
-        right /= length;
+        forward /= movementLength;
+        right /= movementLength;
+
     }
 
-    player.position.z -=
-        forward *
-        playerSpeed *
-        delta;
+    // --------------------------------------------------------
+    // DIRECCIÓN BASADA EN LA CÁMARA
+    // --------------------------------------------------------
 
-    player.position.x +=
-        right *
-        playerSpeed *
-        delta;
+    const forwardDirection =
+        new THREE.Vector3(
+            Math.sin(cameraYaw),
+            0,
+            Math.cos(cameraYaw)
+        );
 
-    // Gravedad
+    const rightDirection =
+        new THREE.Vector3(
+            Math.cos(cameraYaw),
+            0,
+            -Math.sin(cameraYaw)
+        );
+
+    const movement =
+        new THREE.Vector3();
+
+    movement.addScaledVector(
+        forwardDirection,
+        forward
+    );
+
+    movement.addScaledVector(
+        rightDirection,
+        right
+    );
+
+    if (movement.lengthSq() > 0) {
+
+        movement.normalize();
+
+        let speed = playerSpeed;
+
+        if (keys["ShiftLeft"] ||
+            keys["ShiftRight"]) {
+
+            speed = sprintSpeed;
+
+        }
+
+        player.position.x +=
+            movement.x *
+            speed *
+            delta;
+
+        player.position.z +=
+            movement.z *
+            speed *
+            delta;
+
+        // ----------------------------------------------------
+        // GIRAR PERSONAJE
+        // ----------------------------------------------------
+
+        const targetRotation =
+            Math.atan2(
+                movement.x,
+                movement.z
+            );
+
+        player.rotation.y =
+            THREE.MathUtils.lerp(
+                player.rotation.y,
+                targetRotation,
+                0.2
+            );
+    }
+
+    // --------------------------------------------------------
+    // GRAVEDAD
+    // --------------------------------------------------------
 
     velocityY -=
         gravity *
@@ -246,7 +365,9 @@ function updatePlayer(delta) {
         velocityY *
         delta;
 
-    // Suelo
+    // --------------------------------------------------------
+    // SUELO
+    // --------------------------------------------------------
 
     if (player.position.y <= 1.1) {
 
@@ -255,41 +376,64 @@ function updatePlayer(delta) {
         velocityY = 0;
 
         onGround = true;
+
     }
 }
 
-// --------------------------------------------------
+// ============================================================
 // CÁMARA
-// --------------------------------------------------
+// ============================================================
 
 function updateCamera() {
 
-    const cameraOffset =
-        new THREE.Vector3(
-            0,
-            5,
-            9
-        );
+    const horizontalDistance =
+        cameraDistance *
+        Math.cos(cameraPitch);
 
-    const desiredPosition =
-        player.position.clone()
-        .add(cameraOffset);
+    const verticalDistance =
+        cameraDistance *
+        Math.sin(cameraPitch);
+
+    const cameraPosition =
+        new THREE.Vector3();
+
+    cameraPosition.x =
+        player.position.x -
+        Math.sin(cameraYaw) *
+        horizontalDistance;
+
+    cameraPosition.z =
+        player.position.z -
+        Math.cos(cameraYaw) *
+        horizontalDistance;
+
+    cameraPosition.y =
+        player.position.y +
+        cameraHeight -
+        verticalDistance;
+
+    // Seguimiento suave
 
     camera.position.lerp(
-        desiredPosition,
-        0.1
+        cameraPosition,
+        0.12
     );
 
-    camera.lookAt(
-        player.position.x,
-        player.position.y + 1,
-        player.position.z
-    );
+    // Mirar al jugador
+
+    const target =
+        new THREE.Vector3(
+            player.position.x,
+            player.position.y + 1,
+            player.position.z
+        );
+
+    camera.lookAt(target);
 }
 
-// --------------------------------------------------
+// ============================================================
 // RESIZE
-// --------------------------------------------------
+// ============================================================
 
 window.addEventListener(
     "resize",
@@ -305,12 +449,13 @@ window.addEventListener(
             window.innerWidth,
             window.innerHeight
         );
+
     }
 );
 
-// --------------------------------------------------
+// ============================================================
 // BUCLE PRINCIPAL
-// --------------------------------------------------
+// ============================================================
 
 const clock =
     new THREE.Clock();
@@ -337,9 +482,9 @@ function animate() {
     );
 }
 
-// --------------------------------------------------
-// INICIAR
-// --------------------------------------------------
+// ============================================================
+// INICIO
+// ============================================================
 
 loading.style.display = "none";
 
