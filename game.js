@@ -563,9 +563,9 @@ for (const position of wheelPositions) {
 // ------------------------------------------------------------
 
 vehicle.position.set(
-    8,
+    3,
     0,
-    8
+    3
 );
 
 vehicle.rotation.y =
