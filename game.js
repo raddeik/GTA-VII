@@ -137,8 +137,6 @@ const sidewalkMaterial =
         color: 0x777777
     });
 
-const buildings = [];
-
 const buildingMaterials = [
     new THREE.MeshStandardMaterial({
         color: 0x9b9b9b
@@ -291,7 +289,7 @@ function createBuilding(
             )
         ];
 
-    const building = createBox(
+    createBox(
         width,
         height,
         depth,
@@ -300,15 +298,13 @@ function createBuilding(
         height / 2,
         z
     );
-
-    buildings.push(building);
 }
 
 // ------------------------------------------------------------
 // BLOQUE 1
 // ------------------------------------------------------------
 
-create(
+createBuilding(
     30,
     30,
     15,
@@ -316,7 +312,7 @@ create(
     25
 );
 
-create(
+createBuilding(
     55,
     30,
     18,
@@ -832,9 +828,6 @@ function updatePlayer(delta) {
     }
 }
 
-// ============================================================
-// COLISIONES
-//=============================================================
 
 // ============================================================
 // CONDUCCIÓN
@@ -932,12 +925,12 @@ function updateVehicle(delta) {
     forward.applyQuaternion(
         vehicle.quaternion
     );
-    
+
     vehicle.position.addScaledVector(
         forward,
         vehicleSpeed * delta
     );
-    
+
     vehicle.position.y = 0;
 
     // Jugador dentro del vehículo
