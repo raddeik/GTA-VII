@@ -723,32 +723,24 @@ let onGround = true;
 // MOVIMIENTO
 // ============================================================
 
+// ============================================================
+// MOVIMIENTO DEL JUGADOR
+// ============================================================
+
 function updatePlayer(delta) {
 
     let forward = 0;
     let right = 0;
 
-    if (keys["KeyW"]) {
-        forward -= 1;
-    }
+    if (keys["KeyW"]) forward -= 1;
+    if (keys["KeyS"]) forward += 1;
+    if (keys["KeyD"]) right -= 1;
+    if (keys["KeyA"]) right += 1;
 
-    if (keys["KeyS"]) {
-        forward += 1;
-    }
-
-    if (keys["KeyD"]) {
-        right -= 1;
-    }
-
-    if (keys["KeyA"]) {
-        right += 1;
-    }
-
-    const movementLength =
-        Math.sqrt(
-            forward * forward +
-            right * right
-        );
+    const movementLength = Math.sqrt(
+        forward * forward +
+        right * right
+    );
 
     if (movementLength > 0) {
 
@@ -757,7 +749,85 @@ function updatePlayer(delta) {
 
     }
 
+    // Dirección según la cámara
+
+    const forwardDirection = new THREE.Vector3(
+        -Math.sin(cameraYaw),
+        0,
+        -Math.cos(cameraYaw)
+    );
+
+    const rightDirection = new THREE.Vector3(
+        Math.cos(cameraYaw),
+        0,
+        -Math.sin(cameraYaw)
+    );
+
+    const movement = new THREE.Vector3();
+
+    movement.addScaledVector(
+        forwardDirection,
+        forward
+    );
+
+    movement.addScaledVector(
+        rightDirection,
+        right
+    );
+
+    if (movement.lengthSq() > 0) {
+
+        movement.normalize();
+
+        let speed = playerSpeed;
+
+        if (
+            keys["ShiftLeft"] ||
+            keys["ShiftRight"]
+        ) {
+            speed = sprintSpeed;
+        }
+
+        player.position.x +=
+            movement.x * speed * delta;
+
+        player.position.z +=
+            movement.z * speed * delta;
+
+        const targetRotation =
+            Math.atan2(
+                movement.x,
+                movement.z
+            );
+
+        player.rotation.y =
+            THREE.MathUtils.lerp(
+                player.rotation.y,
+                targetRotation,
+                0.2
+            );
     }
+
+    // Gravedad
+
+    velocityY -= gravity * delta;
+
+    player.position.y +=
+        velocityY * delta;
+
+    // Suelo
+
+    if (player.position.y <= 1.1) {
+
+        player.position.y = 1.1;
+
+        velocityY = 0;
+
+        onGround = true;
+
+    }
+}
+
 
 // ============================================================
 // CONDUCCIÓN
@@ -767,40 +837,31 @@ function updateVehicle(delta) {
 
     if (!drivingVehicle) {
 
-        // El coche reduce velocidad lentamente
-
         vehicleSpeed *= 0.95;
 
         return;
+
     }
 
-    // --------------------------------------------------------
-    // ACELERACIÓN
-    // --------------------------------------------------------
+    // Acelerar
 
     if (keys["KeyW"]) {
 
         vehicleSpeed +=
-            vehicleAcceleration *
-            delta;
+            vehicleAcceleration * delta;
 
     }
 
-    // --------------------------------------------------------
-    // FRENADO / MARCHA ATRÁS
-    // --------------------------------------------------------
+    // Frenar / marcha atrás
 
     if (keys["KeyS"]) {
 
         vehicleSpeed -=
-            vehicleBrake *
-            delta;
+            vehicleBrake * delta;
 
     }
 
-    // --------------------------------------------------------
-    // LÍMITE DE VELOCIDAD
-    // --------------------------------------------------------
+    // Límite de velocidad
 
     vehicleSpeed =
         THREE.MathUtils.clamp(
@@ -809,9 +870,7 @@ function updateVehicle(delta) {
             vehicleMaxSpeed
         );
 
-    // --------------------------------------------------------
-    // FRENADO AUTOMÁTICO
-    // --------------------------------------------------------
+    // Frenado automático
 
     if (
         !keys["KeyW"] &&
@@ -823,9 +882,7 @@ function updateVehicle(delta) {
 
     }
 
-    // --------------------------------------------------------
-    // DIRECCIÓN
-    // --------------------------------------------------------
+    // Dirección
 
     if (
         Math.abs(vehicleSpeed) > 0.1
@@ -856,9 +913,7 @@ function updateVehicle(delta) {
 
     }
 
-    // --------------------------------------------------------
-    // MOVIMIENTO
-    // --------------------------------------------------------
+    // Movimiento del coche
 
     const forward =
         new THREE.Vector3(
@@ -876,118 +931,15 @@ function updateVehicle(delta) {
         vehicleSpeed * delta
     );
 
-    // --------------------------------------------------------
-    // MANTENER EL COCHE EN EL SUELO
-    // --------------------------------------------------------
-
     vehicle.position.y = 0;
 
-    // --------------------------------------------------------
-    // COLOCAR AL JUGADOR DENTRO DEL COCHE
-    // --------------------------------------------------------
+    // Jugador dentro del vehículo
 
     player.position.copy(
         vehicle.position
     );
 
     player.position.y += 1;
-}
-
-    // --------------------------------------------------------
-    // DIRECCIÓN BASADA EN LA CÁMARA
-    // --------------------------------------------------------
-
-const forwardDirection = new THREE.Vector3(
-    -Math.sin(cameraYaw),
-    0,
-    -Math.cos(cameraYaw)
-);
-
-const rightDirection = new THREE.Vector3(
-    Math.cos(cameraYaw),
-    0,
-    -Math.sin(cameraYaw)
-);
-
-    const movement =
-        new THREE.Vector3();
-
-    movement.addScaledVector(
-        forwardDirection,
-        forward
-    );
-
-    movement.addScaledVector(
-        rightDirection,
-        right
-    );
-
-    if (movement.lengthSq() > 0) {
-
-        movement.normalize();
-
-        let speed = playerSpeed;
-
-        if (keys["ShiftLeft"] ||
-            keys["ShiftRight"]) {
-
-            speed = sprintSpeed;
-
-        }
-
-        player.position.x +=
-            movement.x *
-            speed *
-            delta;
-
-        player.position.z +=
-            movement.z *
-            speed *
-            delta;
-
-        // ----------------------------------------------------
-        // GIRAR PERSONAJE
-        // ----------------------------------------------------
-
-        const targetRotation =
-            Math.atan2(
-                movement.x,
-                movement.z
-            );
-
-        player.rotation.y =
-            THREE.MathUtils.lerp(
-                player.rotation.y,
-                targetRotation,
-                0.2
-            );
-    }
-
-    // --------------------------------------------------------
-    // GRAVEDAD
-    // --------------------------------------------------------
-
-    velocityY -=
-        gravity *
-        delta;
-
-    player.position.y +=
-        velocityY *
-        delta;
-
-    // --------------------------------------------------------
-    // SUELO
-    // --------------------------------------------------------
-
-    if (player.position.y <= 1.1) {
-
-        player.position.y = 1.1;
-
-        velocityY = 0;
-
-        onGround = true;
-
-    }
 }
 
 // ============================================================
