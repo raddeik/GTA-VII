@@ -765,6 +765,8 @@ function updatePlayer(delta) {
 
 function updateVehicle(delta) {
 
+    console.log("VEHÍCULO FUNCIONANDO");
+
     if (!drivingVehicle) {
 
         // El coche reduce velocidad lentamente
