@@ -836,34 +836,6 @@ function updatePlayer(delta) {
 // COLISIONES
 //=============================================================
 
-function checkBuildingCollision() {
-
-    const carBox =
-        new THREE.Box3().setFromObject(
-            vehicle
-        );
-
-    for (const building of buildings) {
-
-        const buildingBox =
-            new THREE.Box3().setFromObject(
-                building
-            );
-
-        if (
-            carBox.intersectsBox(
-                buildingBox
-            )
-        ) {
-
-            return true;
-
-        }
-    }
-
-    return false;
-}
-
 // ============================================================
 // CONDUCCIÓN
 // ============================================================
@@ -960,21 +932,11 @@ function updateVehicle(delta) {
     forward.applyQuaternion(
         vehicle.quaternion
     );
-
-    const oldPosition =
-        vehicle.position.clone();
     
     vehicle.position.addScaledVector(
         forward,
         vehicleSpeed * delta
     );
-
-    if (checkBuildingCollision()) {
-
-    vehicle.position.copy(oldPosition);
-
-    vehicleSpeed = 0;
-}
     
     vehicle.position.y = 0;
 
