@@ -137,6 +137,8 @@ const sidewalkMaterial =
         color: 0x777777
     });
 
+const buildings = [];
+
 const buildingMaterials = [
     new THREE.MeshStandardMaterial({
         color: 0x9b9b9b
@@ -289,7 +291,7 @@ function createBuilding(
             )
         ];
 
-    createBox(
+    const building = createBox(
         width,
         height,
         depth,
@@ -298,13 +300,15 @@ function createBuilding(
         height / 2,
         z
     );
+
+    buildings.push(building);
 }
 
 // ------------------------------------------------------------
 // BLOQUE 1
 // ------------------------------------------------------------
 
-createBuilding(
+create(
     30,
     30,
     15,
@@ -312,7 +316,7 @@ createBuilding(
     25
 );
 
-createBuilding(
+create(
     55,
     30,
     18,
@@ -828,6 +832,37 @@ function updatePlayer(delta) {
     }
 }
 
+// ============================================================
+// COLISIONES
+//=============================================================
+
+function checkBuildingCollision() {
+
+    const carBox =
+        new THREE.Box3().setFromObject(
+            vehicle
+        );
+
+    for (const building of buildings) {
+
+        const buildingBox =
+            new THREE.Box3().setFromObject(
+                building
+            );
+
+        if (
+            carBox.intersectsBox(
+                buildingBox
+            )
+        ) {
+
+            return true;
+
+        }
+    }
+
+    return false;
+}
 
 // ============================================================
 // CONDUCCIÓN
@@ -926,11 +961,21 @@ function updateVehicle(delta) {
         vehicle.quaternion
     );
 
+    const oldPosition =
+        vehicle.position.clone();
+    
     vehicle.position.addScaledVector(
         forward,
         vehicleSpeed * delta
     );
 
+    if (checkBuildingCollision()) {
+
+    vehicle.position.copy(oldPosition);
+
+    vehicleSpeed = 0;
+}
+    
     vehicle.position.y = 0;
 
     // Jugador dentro del vehículo
