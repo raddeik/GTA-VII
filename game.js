@@ -282,6 +282,25 @@ function createBuilding(
     depth,
     height
 ) {
+    
+    const material =
+        buildingMaterials[
+            Math.floor(
+                Math.random() *
+                buildingMaterials.length
+            )
+        ];
+
+    createBox(
+        width,
+        height,
+        depth,
+        material,
+        x,
+        height / 2,
+        z
+    );
+}
 
 function createPedestrian(x, z) {
 
@@ -308,36 +327,13 @@ function createPedestrian(x, z) {
     pedestrian.add(body);
     pedestrian.add(head);
 
-    pedestrian.position.set(
-        x,
-        0,
-        z
-    );
+    pedestrian.position.set(x, 0, z);
 
     city.add(pedestrian);
 
     pedestrians.push(pedestrian);
 
     return pedestrian;
-}
-    
-    const material =
-        buildingMaterials[
-            Math.floor(
-                Math.random() *
-                buildingMaterials.length
-            )
-        ];
-
-    createBox(
-        width,
-        height,
-        depth,
-        material,
-        x,
-        height / 2,
-        z
-    );
 }
 
 // ------------------------------------------------------------
