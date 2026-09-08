@@ -273,6 +273,8 @@ createBox(
 // EDIFICIOS
 // ------------------------------------------------------------
 
+const pedestrians = [];
+
 function createBuilding(
     x,
     z,
@@ -281,6 +283,44 @@ function createBuilding(
     height
 ) {
 
+function createPedestrian(x, z) {
+
+    const pedestrian = new THREE.Group();
+
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 1, 0.4),
+        new THREE.MeshStandardMaterial({
+            color: 0x3366ff
+        })
+    );
+
+    body.position.y = 0.5;
+
+    const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 16, 16),
+        new THREE.MeshStandardMaterial({
+            color: 0xffcc99
+        })
+    );
+
+    head.position.y = 1.2;
+
+    pedestrian.add(body);
+    pedestrian.add(head);
+
+    pedestrian.position.set(
+        x,
+        0,
+        z
+    );
+
+    city.add(pedestrian);
+
+    pedestrians.push(pedestrian);
+
+    return pedestrian;
+}
+    
     const material =
         buildingMaterials[
             Math.floor(
@@ -410,6 +450,11 @@ createBuilding(
     15,
     18,
     28
+);
+
+createPedestrian(
+    5,
+    5
 );
 
 // ============================================================
