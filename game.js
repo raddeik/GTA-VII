@@ -274,6 +274,7 @@ createBox(
 // ------------------------------------------------------------
 
 const pedestrians = [];
+const pedestrianSpeed = 2;
 
 function createBuilding(
     x,
@@ -328,12 +329,33 @@ function createPedestrian(x, z) {
     pedestrian.add(head);
 
     pedestrian.position.set(x, 0, z);
-
+    pedestrian.userData.direction = Math.random() * Math.PI * 2;
+    
     city.add(pedestrian);
 
     pedestrians.push(pedestrian);
 
     return pedestrian;
+}
+
+function updatePedestrians(delta) {
+
+    pedestrians.forEach((pedestrian) => {
+
+        const direction =
+            pedestrian.userData.direction;
+
+        pedestrian.position.x +=
+            Math.sin(direction) *
+            pedestrianSpeed *
+            delta;
+
+        pedestrian.position.z +=
+            Math.cos(direction) *
+            pedestrianSpeed *
+            delta;
+
+    });
 }
 
 // ------------------------------------------------------------
@@ -1085,6 +1107,8 @@ if (drivingVehicle) {
 
 }
 
+updatePedestrians(delta);
+    
 updateCamera();
 
     renderer.render(
