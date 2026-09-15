@@ -330,6 +330,7 @@ function createPedestrian(x, z) {
 
     pedestrian.position.set(x, 0, z);
     pedestrian.userData.direction = Math.random() * Math.PI * 2;
+    pedestrian.userData.changeTimer = 0;
     
     city.add(pedestrian);
 
@@ -345,6 +346,17 @@ function updatePedestrians(delta) {
         const direction =
             pedestrian.userData.direction;
 
+        pedestrian.userData.changeTimer -= delta;
+
+if (pedestrian.userData.changeTimer <= 0) {
+
+    pedestrian.userData.direction =
+        Math.random() * Math.PI * 2;
+
+    pedestrian.userData.changeTimer =
+        2 + Math.random() * 4;
+}
+        
         pedestrian.position.x +=
             Math.sin(direction) *
             pedestrianSpeed *
