@@ -356,6 +356,9 @@ if (pedestrian.userData.changeTimer <= 0) {
     pedestrian.userData.changeTimer =
         2 + Math.random() * 4;
 }
+
+pedestrian.rotation.y =
+    direction;
         
         pedestrian.position.x +=
             Math.sin(direction) *
